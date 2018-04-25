@@ -1,15 +1,23 @@
 package turtleants;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Ant extends Thread {
+
 	// current row and column of ant
 	private int row, col;
 
 	// speed of the ant
 	private int speed;
 
-	// Random number generatore to determine how ant wanders
+	private int id;
+	private long startTime;
+
+	private List<Activity> activityList;
+
+	// Random number generator to determine how ant wanders
 	private Random motionGen;
 
 	// World containing all of the cells to be displayed
@@ -18,52 +26,71 @@ public class Ant extends Thread {
 	// Class responsible for writing paint method for repainting the screen
 	private Arena arena;
 
+	// if the ant is in a nest and the chance that it will stay in the nest
 	private boolean inNest = false;
 	private int chanceInNest;
+	private int chanceFollowPher, chanceMoveOn; // chanceFollowPher>chanceMoveOn
+
+	private boolean stop = false;
 
 	/**
-	 * Construct an ant
+	 * Create an ant
 	 * 
 	 * @param row
-	 *            row where ant starts
+	 *            row ant is in
 	 * @param col
-	 *            column where ant starts
+	 *            col ant is in
 	 * @param world
-	 *            world of cells where arena is
+	 *            array of cells where the ant is in
 	 * @param arena
-	 *            object responsible for repainting canvas
+	 *            class responsible for paint method
 	 * @param speed
-	 *            speed of the ant
+	 *            how fast the ant is
+	 * @param chanceInNest
+	 *            chance that it will remain in a nest
 	 */
-	public Ant(int row, int col, Cell[][] world, Arena arena, int speed, int chanceInNest) {
+	public Ant(int antID, long startTime, List<Activity> activityList, int row, int col, Cell[][] world, Arena arena,
+			int speed, int chanceInNest, int chanceFollowPher, int chanceMoveOn) {
+		this.id = antID;
+		this.startTime = startTime;
+		this.activityList = activityList;
 		this.world = world;
 		this.row = row;
 		this.col = col;
 		this.arena = arena;
 		this.speed = speed;
 		this.chanceInNest = chanceInNest;
+		this.chanceFollowPher = chanceFollowPher;
+		this.chanceMoveOn = chanceMoveOn;
+
+		// random generator to determine ant's movement
 		motionGen = new Random();
 
 	}
 
 	/**
-	 * move one cell over in a random direction from current position and pause Can
+	 * move one cell over in a random direction from current position and pause. Can
 	 * move up, down, left, right, in diagonal directions or stay in the same spot.
 	 */
 	private void move() {
 
 		int chanceOut = 100;
+		boolean findMove, stayInPlace;
 
 		if (inNest) {
 			// determine the chance that the ant will come out of a nest
 			chanceOut = motionGen.nextInt(100);
 		}
 
-		if (!inNest || chanceOut < chanceInNest) {
+		// move if the ant is not in a nest or has the chance to come out of a nest
+		if (!inNest || chanceOut > chanceInNest) {
 			int tempCol, tempRow;
 			int colDir, rowDir;
 
 			do {
+				findMove = true;
+				stayInPlace = true;
+
 				// randomly choose to move right, left, or stay in place
 				colDir = motionGen.nextInt(3) - 1;
 				tempCol = col + colDir;
@@ -71,23 +98,50 @@ public class Ant extends Thread {
 				// randomly chooose to move up, down, or stay in place
 				rowDir = motionGen.nextInt(3) - 1;
 				tempRow = row + rowDir;
-			
-			//don't move into a wall
-			} while (world[tempRow][tempCol].isWall());
-			
-			
-			//note if ant moves into a nest
-			if (world[tempRow][tempCol].isNest()) {
-				inNest = true;
+
+				// note if the ant stays in place
+				if (!(rowDir == 0 && colDir == 0)) {
+					stayInPlace = false;
+				}
+
+				// there's a greater chance of moving into a cell with pheromones
+				if ((world[tempRow][tempCol].visited() && !stayInPlace && motionGen.nextInt(100) < chanceFollowPher)
+						|| motionGen.nextInt(100) < chanceMoveOn) {
+					findMove = false;
+				}
+				// don't move into a wall
+			} while (world[tempRow][tempCol].isWall() || findMove);
+
+			// if you've made a move
+			if (!stayInPlace) {
+
+				// note if ant moves into/out of a nest
+				if (world[tempRow][tempCol].isNest()) {
+					inNest = true;
+					activityList.add(
+							new Activity(System.currentTimeMillis() - startTime, id, true, false, tempRow, tempCol));
+				} else {
+					inNest = false;
+				}
+
+				// note if ant moves onto a bridge
+				if (world[tempRow][tempCol].isBridge()) {
+					activityList.add(
+							new Activity(System.currentTimeMillis() - startTime, id, false, true, tempRow, tempCol));
+				}
 			}
 
 			col = tempCol;
 			row = tempRow;
+
+			world[row][col].visit();
 		}
 
 		// update the ant on the screen
 		arena.repaint();
-		try {
+		try
+
+		{
 			sleep(speed);
 		} catch (InterruptedException exc) {
 			System.out.println("sleep interrupted!");
@@ -96,13 +150,10 @@ public class Ant extends Thread {
 
 	/**
 	 * Run method for Ant.
-	 * 
-	 * The termite moves randomly until it finds a wooden chip. It drops the chip in
-	 * an empty space if it encounters another chip.
 	 */
 	public void run() {
 
-		while (true) {
+		while (!stop) {
 			move();
 		}
 	}
@@ -131,4 +182,7 @@ public class Ant extends Thread {
 		return col;
 	}
 
+	public void stopAnt() {
+		stop = true;
+	}
 }

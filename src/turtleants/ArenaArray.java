@@ -11,45 +11,33 @@ public class ArenaArray {
 	 * makes arena with specified number of rows and columns
 	 */
 	public ArenaArray(int size, int rows, int cols) {
-		arena = new char[size * rows][size * cols];
+		this.totalRows = rows * size + rows + 1;
+		this.totalCols = cols * size + cols + 1;
+		arena = new char[totalRows + 1][totalCols + 1];
 		this.rows = rows;
 		this.cols = cols;
 		this.boxSize = size;
-		this.totalRows = rows * size;
-		this.totalCols = cols * size;
 
 		// make everything empty for now
-		for (int r = 0; r < totalRows; r++) {
-			System.out.println("making Os");
-
-			for (int c = 0; c < totalCols; c++) {
+		for (int r = 0; r <= totalRows; r++) {
+			for (int c = 0; c <= totalCols; c++) {
 				arena[r][c] = 'O';
 			}
 		}
 
 		// make vertical walls
-		for (int r = totalRows; r >= 0; r--) {
-			for (int c = cols; c >= 0; c--) {
-				if (c == 0) {
-					arena[r][c * boxSize] = 'X';
-				} else {
-					arena[r][c * boxSize - 1] = 'X';
-				}
+		for (int r = 0; r <= totalRows; r++) {
+			for (int c = 0; c <= cols; c++) {
+				arena[r][c * boxSize + c] = 'X';
 			}
 		}
 
-		// make horizontal walls
-		for (int c = totalCols; c >= 0; c--) {
-			for (int r = rows; r >= 0; r--) {
-				if (r == 0) {
-					arena[r * boxSize][c] = 'X';
-
-				} else {
-					arena[r * boxSize - 1][c] = 'X';
-				}
+		// make vertical walls
+		for (int c = 0; c <= totalCols; c++) {
+			for (int r = 0; r <= rows; r++) {
+				arena[r * boxSize + r][c] = 'X';
 			}
 		}
-
 	}
 
 	/**
@@ -66,19 +54,16 @@ public class ArenaArray {
 		int rPos, cPos;
 
 		if (box1Row == box2Row) {
-			rPos = box2Row * boxSize + boxSize / 2;
+			rPos = box2Row * boxSize + box2Row + boxSize / 2 + 1;
 		} else {
-			rPos = box2Row * boxSize;
+			rPos = box2Row * boxSize + box2Row;
 		}
 
 		if (box1Col == box2Col) {
-			cPos = box2Col * boxSize + boxSize / 2;
+			cPos = box2Col * boxSize + box2Col + boxSize / 2 + 1;
 		} else {
-			cPos = box2Col * boxSize;
+			cPos = box2Col * boxSize + box2Col;
 		}
-
-		System.out.print(rPos);
-		System.out.print(cPos);
 
 		arena[rPos][cPos] = 'B';
 	}
@@ -87,8 +72,8 @@ public class ArenaArray {
 	 * make nest in specified box
 	 */
 	public void addNest(int boxRow, int boxCol) {
-		int rPos = (boxRow * boxSize) + boxSize / 2;
-		int cPos = (boxCol * boxSize) + boxSize / 2;
+		int rPos = (boxRow * boxSize) + boxRow + boxSize / 2 +1;
+		int cPos = (boxCol * boxSize) + boxCol + boxSize / 2 +1;
 
 		arena[rPos][cPos] = 'N';
 	}
@@ -97,14 +82,14 @@ public class ArenaArray {
 	 * @return number of rows in the game
 	 */
 	public int totalRows() {
-		return rows * boxSize;
+		return totalRows;
 	}
 
 	/**
 	 * @return number of columns in the game
 	 */
 	public int totalCols() {
-		return cols * boxSize;
+		return totalCols;
 	}
 
 	public char[][] getArray() {

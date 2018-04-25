@@ -47,6 +47,13 @@ public class Cell {
 	}
 
 	/**
+	 * Return cell type
+	 */
+	public int type() {
+		return type;
+	}
+	
+	/**
 	 * Decide if the cell is a nest.
 	 */
 	public boolean isNest() {
