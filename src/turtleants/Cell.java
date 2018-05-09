@@ -12,59 +12,99 @@ public class Cell {
 	private int row, col;
 	private int type;
 	private boolean visited;
-	private int timePassed = 0;
-	private final int PHEROMONE_STRENGTH = 10;
+	static final int PHEROMONE_STRENGTH = 20; //20 usually
+	private int pheromone = 0;
+	private int numAnts = 0;
+	private String nestName;
+	//private boolean hasAnt = false;
 
 	/**
 	 * Constructor for a Cell. <br>
 	 */
-	public Cell(int type, int row, int col) {
+	public Cell(int type, int row, int col, String name) {
 		// remember these variables
 		this.type = type;
 		this.row = row;
 		this.col = col;
+		this.nestName = name;
 	}
 
 	/**
 	 * Decide if the cell is a wall.
 	 */
-	public boolean isWall() {
+	synchronized public boolean isWall() {
 		return type == Arena.WALL;
 	}
 
 	/**
 	 * Decide if the cell is a bridge.
 	 */
-	public boolean isBridge() {
+	synchronized public boolean isBridge() {
 		return type == Arena.BRIDGE;
 	}
 
 	/**
 	 * Decide if the cell is empty.
 	 */
-	public boolean isEmpty() {
+	synchronized public boolean isEmpty() {
 		return type == Arena.EMPTY;
 	}
 
 	/**
 	 * Return cell type
 	 */
-	public int type() {
+	synchronized public int type() {
 		return type;
 	}
-	
+
 	/**
 	 * Decide if the cell is a nest.
 	 */
-	public boolean isNest() {
+	synchronized public boolean isNest() {
 		return type == Arena.NEST;
+	}
+
+	synchronized public String getNestName() {
+		return nestName;
+	}
+
+//	synchronized public void addAnt() {
+//		hasAnt = true;
+//		System.out.println(numAnts);
+//
+//		numAnts++;
+//		System.out.println("adding");
+//		System.out.println(numAnts);
+//	}
+//
+//	synchronized public void removeAnt() {
+//		System.out.println(numAnts);
+//		System.out.println(hasAnt);
+//		numAnts--;
+//		System.out.println("removing");
+//		System.out.println(numAnts);
+//
+//		
+//	}
+
+	synchronized public int getNumAnts() {
+		return numAnts;
+	}
+
+	synchronized public boolean isNegative() {
+		return numAnts < 0;
 	}
 
 	/**
 	 * Determine if the cell has been visited.
 	 */
-	public boolean visited() {
+	synchronized public boolean visited() {
+		pheromone = Math.min(pheromone + PHEROMONE_STRENGTH, 7500);
 		return visited;
+	}
+
+	synchronized public void reset() {
+		visited = false;
 	}
 
 	/**
@@ -78,10 +118,13 @@ public class Cell {
 	 * Determine time that has passed since the last visit.
 	 */
 	synchronized public void addTime() {
-		timePassed++;
-		if (timePassed > PHEROMONE_STRENGTH) {
+		pheromone = Math.max(pheromone - PHEROMONE_STRENGTH - PHEROMONE_STRENGTH * 2, 0);
+		if (pheromone <= 0) {
 			visited = false;
-			timePassed = 0;
 		}
+	}
+
+	synchronized public int getPheromone() {
+		return pheromone;
 	}
 }

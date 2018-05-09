@@ -29,7 +29,9 @@ public class Ant extends Thread {
 	// if the ant is in a nest and the chance that it will stay in the nest
 	private boolean inNest = false;
 	private int chanceInNest;
-	private int chanceFollowPher, chanceMoveOn; // chanceFollowPher>chanceMoveOn
+	private int chanceMoveOn;
+
+	private static final int ANT_INFLUENCE = 50; // 50 usually
 
 	private boolean stop = false;
 
@@ -50,7 +52,7 @@ public class Ant extends Thread {
 	 *            chance that it will remain in a nest
 	 */
 	public Ant(int antID, long startTime, List<Activity> activityList, int row, int col, Cell[][] world, Arena arena,
-			int speed, int chanceInNest, int chanceFollowPher, int chanceMoveOn) {
+			int speed, int chanceInNest, int chanceMoveOn) {
 		this.id = antID;
 		this.startTime = startTime;
 		this.activityList = activityList;
@@ -60,7 +62,6 @@ public class Ant extends Thread {
 		this.arena = arena;
 		this.speed = speed;
 		this.chanceInNest = chanceInNest;
-		this.chanceFollowPher = chanceFollowPher;
 		this.chanceMoveOn = chanceMoveOn;
 
 		// random generator to determine ant's movement
@@ -72,18 +73,30 @@ public class Ant extends Thread {
 	 * move one cell over in a random direction from current position and pause. Can
 	 * move up, down, left, right, in diagonal directions or stay in the same spot.
 	 */
-	private void move() {
+	synchronized private void move() {
 
 		int chanceOut = 100;
 		boolean findMove, stayInPlace;
 
+		int numAnts = 0;
+
 		if (inNest) {
 			// determine the chance that the ant will come out of a nest
-			chanceOut = motionGen.nextInt(100);
+
+			chanceOut = motionGen.nextInt(10000);
+			for (Ant a : arena.ANTS) {
+				int r = a.getRow();
+				int c = a.getCol();
+				if (r == row && c == col) {
+					numAnts++;
+				}
+			}
+			// System.out.println("");
 		}
 
 		// move if the ant is not in a nest or has the chance to come out of a nest
-		if (!inNest || chanceOut > chanceInNest) {
+		if (!inNest || chanceOut > Math.min(10000,
+				chanceInNest + world[row][col].getPheromone() + numAnts * ANT_INFLUENCE)) {
 			int tempCol, tempRow;
 			int colDir, rowDir;
 
@@ -105,10 +118,13 @@ public class Ant extends Thread {
 				}
 
 				// there's a greater chance of moving into a cell with pheromones
-				if ((world[tempRow][tempCol].visited() && !stayInPlace && motionGen.nextInt(100) < chanceFollowPher)
-						|| motionGen.nextInt(100) < chanceMoveOn) {
+				if ((world[tempRow][tempCol].visited() && !stayInPlace
+						&& motionGen.nextInt(10000) < Math.min(7500,
+								chanceMoveOn + world[tempRow][tempCol].getPheromone()))
+						|| motionGen.nextInt(10000) < chanceMoveOn) {
 					findMove = false;
 				}
+
 				// don't move into a wall
 			} while (world[tempRow][tempCol].isWall() || findMove);
 
@@ -116,26 +132,32 @@ public class Ant extends Thread {
 			if (!stayInPlace) {
 
 				// note if ant moves into/out of a nest
-				if (world[tempRow][tempCol].isNest()) {
+				if (world[tempRow][tempCol].isNest() && !world[row][col].isNest()) {
 					inNest = true;
-					activityList.add(
-							new Activity(System.currentTimeMillis() - startTime, id, true, false, tempRow, tempCol));
-				} else {
+					// world[tempRow][tempCol].addAnt();
+
+					// activityList.add(
+					// new Activity(System.currentTimeMillis() - startTime, id, true, false,
+					// tempRow, tempCol));
+				} else if (world[row][col].isNest() && !world[tempRow][tempCol].isNest()) {
 					inNest = false;
+					// world[tempRow][tempCol].removeAnt();
+
 				}
 
 				// note if ant moves onto a bridge
-				if (world[tempRow][tempCol].isBridge()) {
-					activityList.add(
-							new Activity(System.currentTimeMillis() - startTime, id, false, true, tempRow, tempCol));
-				}
+				// if (world[tempRow][tempCol].isBridge()) {
+				// activityList.add(
+				// new Activity(System.currentTimeMillis() - startTime, id, false, true,
+				// tempRow, tempCol));
+				// }
 			}
 
 			col = tempCol;
 			row = tempRow;
-
-			world[row][col].visit();
 		}
+
+		world[row][col].visit();
 
 		// update the ant on the screen
 		arena.repaint();
@@ -152,10 +174,13 @@ public class Ant extends Thread {
 	 * Run method for Ant.
 	 */
 	public void run() {
-
 		while (!stop) {
 			move();
 		}
+	}
+
+	public void restart() {
+		stop = false;
 	}
 
 	/**
@@ -173,6 +198,14 @@ public class Ant extends Thread {
 	 */
 	public int getRow() {
 		return row;
+	}
+
+	public void setRow(int r) {
+		row = r;
+	}
+
+	public void setCol(int c) {
+		col = c;
 	}
 
 	/**

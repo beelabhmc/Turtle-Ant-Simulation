@@ -1,7 +1,7 @@
 package turtleants;
 
 public class ArenaArray {
-	private char[][] arena;
+	private String[][] arena;
 	private int boxSize;
 	private int rows;
 	private int cols;
@@ -13,7 +13,7 @@ public class ArenaArray {
 	public ArenaArray(int size, int rows, int cols) {
 		this.totalRows = rows * size + rows + 1;
 		this.totalCols = cols * size + cols + 1;
-		arena = new char[totalRows + 1][totalCols + 1];
+		arena = new String[totalRows + 1][totalCols + 1];
 		this.rows = rows;
 		this.cols = cols;
 		this.boxSize = size;
@@ -21,21 +21,21 @@ public class ArenaArray {
 		// make everything empty for now
 		for (int r = 0; r <= totalRows; r++) {
 			for (int c = 0; c <= totalCols; c++) {
-				arena[r][c] = 'O';
+				arena[r][c] = "O";
 			}
 		}
 
 		// make vertical walls
 		for (int r = 0; r <= totalRows; r++) {
 			for (int c = 0; c <= cols; c++) {
-				arena[r][c * boxSize + c] = 'X';
+				arena[r][c * boxSize + c] = "X";
 			}
 		}
 
 		// make vertical walls
 		for (int c = 0; c <= totalCols; c++) {
 			for (int r = 0; r <= rows; r++) {
-				arena[r * boxSize + r][c] = 'X';
+				arena[r * boxSize + r][c] = "X";
 			}
 		}
 	}
@@ -65,17 +65,17 @@ public class ArenaArray {
 			cPos = box2Col * boxSize + box2Col;
 		}
 
-		arena[rPos][cPos] = 'B';
+		arena[rPos][cPos] = "B";
 	}
 
 	/**
 	 * make nest in specified box
 	 */
-	public void addNest(int boxRow, int boxCol) {
+	public void addNest(int boxRow, int boxCol, String nestName) {
 		int rPos = (boxRow * boxSize) + boxRow + boxSize / 2 +1;
 		int cPos = (boxCol * boxSize) + boxCol + boxSize / 2 +1;
 
-		arena[rPos][cPos] = 'N';
+		arena[rPos][cPos] = "N" + nestName;
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class ArenaArray {
 		return totalCols;
 	}
 
-	public char[][] getArray() {
+	public String[][] getArray() {
 		return arena;
 	}
 }
