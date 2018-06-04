@@ -12,6 +12,7 @@ public class Ant extends Thread {
 	// speed of the ant
 	private int speed;
 
+	// ID of ant
 	private int id;
 	private long startTime;
 
@@ -26,12 +27,14 @@ public class Ant extends Thread {
 	// Class responsible for writing paint method for repainting the screen
 	private Arena arena;
 
-	// if the ant is in a nest and the chance that it will stay in the nest
+	// if the ant is in a nest and the chance that it will stay in the nest/move on
 	private boolean inNest = false;
 	private int chanceInNest;
 	private int chanceMoveOn;
 
-	private static final int ANT_INFLUENCE = 50; // 50 usually
+	// how probability of ant staying in a nest is influenced by the presence of
+	// other ants
+	private static final int ANT_INFLUENCE = 50; // 50 usually, change to 0 if no influence
 
 	private boolean stop = false;
 
@@ -70,8 +73,11 @@ public class Ant extends Thread {
 	}
 
 	/**
-	 * move one cell over in a random direction from current position and pause. Can
+	 * Move one cell over in a random direction from current position and pause. Can
 	 * move up, down, left, right, in diagonal directions or stay in the same spot.
+	 * 
+	 * Probability of moving is affected by pheromones/presence of other
+	 * ants/occupation in a nest
 	 */
 	synchronized private void move() {
 

@@ -1,21 +1,30 @@
 package turtleants;
 
+/**
+ * This creates a matrix of strings representing cells in the arena. The string
+ * indicates the type of cell it is.
+ * 
+ * @author Joanna
+ *
+ */
 public class ArenaArray {
+
+	// string array to represent the arena
 	private String[][] arena;
+
+	// size (number of cells in) of each box
 	private int boxSize;
-	private int rows;
-	private int cols;
+
+	// total rows and columns of cells in arena
 	private int totalRows, totalCols;
 
 	/**
-	 * makes arena with specified number of rows and columns
+	 * Make arena with specified number of rows and columns
 	 */
 	public ArenaArray(int size, int rows, int cols) {
 		this.totalRows = rows * size + rows + 1;
 		this.totalCols = cols * size + cols + 1;
 		arena = new String[totalRows + 1][totalCols + 1];
-		this.rows = rows;
-		this.cols = cols;
 		this.boxSize = size;
 
 		// make everything empty for now
@@ -32,7 +41,7 @@ public class ArenaArray {
 			}
 		}
 
-		// make vertical walls
+		// make horizontal walls
 		for (int c = 0; c <= totalCols; c++) {
 			for (int r = 0; r <= rows; r++) {
 				arena[r * boxSize + r][c] = "X";
@@ -41,7 +50,7 @@ public class ArenaArray {
 	}
 
 	/**
-	 * make bridge between specified boxes
+	 * Make bridge between specified boxes
 	 * 
 	 * pre: (box2Row >= box1Row) && (box2Col >= box1Col)
 	 * 
@@ -69,11 +78,11 @@ public class ArenaArray {
 	}
 
 	/**
-	 * make nest in specified box
+	 * Make nest in specified box
 	 */
 	public void addNest(int boxRow, int boxCol, String nestName) {
-		int rPos = (boxRow * boxSize) + boxRow + boxSize / 2 +1;
-		int cPos = (boxCol * boxSize) + boxCol + boxSize / 2 +1;
+		int rPos = (boxRow * boxSize) + boxRow + boxSize / 2 + 1;
+		int cPos = (boxCol * boxSize) + boxCol + boxSize / 2 + 1;
 
 		arena[rPos][cPos] = "N" + nestName;
 	}
@@ -92,6 +101,9 @@ public class ArenaArray {
 		return totalCols;
 	}
 
+	/**
+	 * @return array to represent the arena
+	 */
 	public String[][] getArray() {
 		return arena;
 	}

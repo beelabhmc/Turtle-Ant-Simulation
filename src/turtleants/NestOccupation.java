@@ -1,9 +1,22 @@
 package turtleants;
 
+/** 
+ * Stores the data for nest occupation
+ * @author Joanna
+ *
+ */
 public class NestOccupation {
+	
+	//number of ants in the nest
 	private int numAnts;
+	
+	//name of the nest
 	private String nestName;
+	
+	//number of simulations that occurred
 	private int numSimulation;
+	
+	
 	private boolean isNeg;
 
 	public NestOccupation(String nestName, int numAnts, int numSimulation, boolean isNeg) {

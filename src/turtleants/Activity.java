@@ -1,10 +1,23 @@
 package turtleants;
 
+/**
+ * Stores the data for an activity (bridge crossing or nest enter).
+ * 
+ * @author Joanna
+ *
+ */
 public class Activity {
 
+	// ID of ant that performed the activity
 	private int antID;
+
+	// time the activity occurred
 	private long time;
+
+	// whether a nest was entered or if a bridge was crossed
 	private boolean nestEntered, bridgeCrossed;
+
+	// where the activity occurred
 	private int row, col;
 
 	public Activity(long time, int antID, boolean nestEntered, boolean bridgeCrossed, int row, int col) {
