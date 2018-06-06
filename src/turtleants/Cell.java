@@ -19,14 +19,20 @@ public class Cell {
 	private boolean visited;
 
 	// keep track of pheromone in cell
-	static final int PHEROMONE_STRENGTH = 20; // 20 usually, change to 0 if no pheromones
 	private int pheromone = 0;
+
+	// how much pheromone each ant adds to cell with visit
+	static final int PHEROMONE_STRENGTH = 20; // 20 usually, change to 0 if no pheromones
+
+	// the maximum effect pheromones can have on ant movement
+	private static final int MAX_PHEROMONE_STRENGTH = 5000;
 
 	// keep track of number of ants in cell
 	private int numAnts = 0;
 
 	// name of the nest if applicable
 	private String nestName;
+
 	// private boolean hasAnt = false;
 
 	/**
@@ -43,35 +49,35 @@ public class Cell {
 	/**
 	 * Return cell type
 	 */
-	synchronized public int type() {
+	public int type() {
 		return type;
 	}
 
 	/**
 	 * Decide if the cell is a wall.
 	 */
-	synchronized public boolean isWall() {
+	public boolean isWall() {
 		return type == Arena.WALL;
 	}
 
 	/**
 	 * Decide if the cell is a bridge.
 	 */
-	synchronized public boolean isBridge() {
+	public boolean isBridge() {
 		return type == Arena.BRIDGE;
 	}
 
 	/**
 	 * Decide if the cell is empty.
 	 */
-	synchronized public boolean isEmpty() {
+	public boolean isEmpty() {
 		return type == Arena.EMPTY;
 	}
 
 	/**
 	 * Decide if the cell is a nest.
 	 */
-	synchronized public boolean isNest() {
+	public boolean isNest() {
 		return type == Arena.NEST;
 	}
 
@@ -80,7 +86,7 @@ public class Cell {
 	 * 
 	 * @return name of nest
 	 */
-	synchronized public String getNestName() {
+	public String getNestName() {
 		return nestName;
 	}
 
@@ -127,19 +133,20 @@ public class Cell {
 	}
 
 	/**
-	 * Note that the cell has been visited.
+	 * Note that the cell has been visited and add pheromones
 	 */
 	synchronized public void visit() {
-		pheromone = Math.min(pheromone + PHEROMONE_STRENGTH, 7500);
+		pheromone = Math.min(pheromone + PHEROMONE_STRENGTH, MAX_PHEROMONE_STRENGTH);
 		visited = true;
 	}
 
 	/**
-	 * Determine time that has passed since the last visit.
+	 * Determine time that has passed since the last visit and decrease pheromones
+	 * in cell
 	 */
 	synchronized public void addTime() {
-		pheromone = Math.max(pheromone - PHEROMONE_STRENGTH - PHEROMONE_STRENGTH * 2, 0);
-		if (pheromone <= 0) {
+		pheromone = Math.max(pheromone - pheromone / 2, 0);
+		if (pheromone <= PHEROMONE_STRENGTH) {
 			visited = false;
 		}
 	}

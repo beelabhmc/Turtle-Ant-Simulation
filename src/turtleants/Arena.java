@@ -5,7 +5,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +12,10 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.sl.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * This is a arena made up of cells. The cells can be empty, bridges, walls, or
@@ -30,12 +26,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 public class Arena extends JPanel {
 
 	// number of rows and cols
-	public static final int ROWS = 4, COLS = 4; 
-	
+	public static final int ROWS = 4, COLS = 4;
+
 	// # cells in each box
 	public static final int BOXSIZE = 7; // should be odd number
-	
-	//size of each cell
+
+	// size of each cell
 	public static final int CELLSIZE = 10;
 
 	// integers to describe the type of cell
@@ -52,33 +48,28 @@ public class Arena extends JPanel {
 
 	// list of nests in arena
 	private List<Cell> theNests = new ArrayList<Cell>();
-	
-	//list of nest occupation at end of simulation
-	private List<NestOccupation> nestOccupation = new ArrayList<NestOccupation>();
 
-	// number and list of ants in simulation
-	public List<Ant> ANTS = new ArrayList<Ant>();
-	private final int NUM_ANTS = 100;
+	// list of nest occupation at end of simulation
+	private List<NestOccupation> nestOccupation = new ArrayList<NestOccupation>();
 
 	// if the simulation has started
 	private boolean started = false;
-	
-	//keep track of simulations and rounds in each simulation
-	private static final int TOTAL_ROUNDS = 3000;
-	private static final int TOTAL_SIMULATIONS = 50;
+
+	// speed of ants
+	private final int SPEED = 0;
+
+	// number and list of ants in simulation
+	public List<Ant> ants = new ArrayList<Ant>();
+	private final int NUM_ANTS = 20;
+
+	// keep track of simulations and rounds in each simulation
+	private static final int TOTAL_ROUNDS = 3000; // was 3000
+	private static final int TOTAL_SIMULATIONS = 50; // was 50
 	private int numRounds = 0;
 	private int numSimulations = 0;
 
-	// speed of ants and chance that they will stay in a nest,
-	// or move on to the next cell
-	private final int SPEED = 0;
-	private final int CHANCE_IN = 6000, CHANCE_MOVE_ON = 5000;
-
-	// when the simulation starts
-	private long startTime;
-
 	// name of file to store data
-	private final String FILE_NAME = "Summer-Pheromone-100Ants.xls";
+	private final String FILE_NAME = "testing.xls";
 
 	/**
 	 * Start the simulation. Make the arena and initialize it. Add ants inside.
@@ -91,13 +82,10 @@ public class Arena extends JPanel {
 		makeArena();
 		initArena();
 
-		startTime = System.currentTimeMillis();
-
 		// add ants and start them
 		for (int i = 0; i < NUM_ANTS; i++) {
-			Ant a = new Ant(i, startTime, activity, BOXSIZE / 2, BOXSIZE / 2, theArena, this, SPEED, CHANCE_IN,
-					CHANCE_MOVE_ON);
-			ANTS.add(a);
+			Ant a = new Ant(i, activity, BOXSIZE / 2, BOXSIZE / 2, theArena, this, SPEED);
+			ants.add(a);
 			a.start();
 		}
 
@@ -126,21 +114,21 @@ public class Arena extends JPanel {
 		arenaArray.addBridge(2, 2, 3, 2);
 		arenaArray.addBridge(3, 0, 3, 1);
 		arenaArray.addBridge(2, 1, 2, 2);
-//		arenaArray.addBridge(3, 2, 3, 3); //Fall only
+		// arenaArray.addBridge(3, 2, 3, 3); //Fall only
 
 		// add nests to the arena
 
-//		// Fall R Nests
-//		arenaArray.addNest(0, 2, "R1"); // Fall only
-//		arenaArray.addNest(0, 3, "R2");
-//		arenaArray.addNest(1, 2, "R3");
-//		arenaArray.addNest(1, 3, "R4");
-//
-//		// Fall D nests
-//		arenaArray.addNest(2, 0, "D1");
-//		arenaArray.addNest(3, 1, "D2");
-//		arenaArray.addNest(2, 2, "D3");
-//		arenaArray.addNest(3, 3, "D4");
+		// Fall R Nests
+		// arenaArray.addNest(0, 2, "R1"); // Fall only
+		// arenaArray.addNest(0, 3, "R2");
+		// arenaArray.addNest(1, 2, "R3");
+		// arenaArray.addNest(1, 3, "R4");
+		//
+		// // Fall D nests
+		// arenaArray.addNest(2, 0, "D1");
+		// arenaArray.addNest(3, 1, "D2");
+		// arenaArray.addNest(2, 2, "D3");
+		// arenaArray.addNest(3, 3, "D4");
 
 		// Summer R nests
 		arenaArray.addNest(0, 3, "R1");
@@ -151,11 +139,6 @@ public class Arena extends JPanel {
 		arenaArray.addNest(3, 0, "D1");
 		arenaArray.addNest(2, 1, "D2");
 		arenaArray.addNest(3, 2, "D3");
-
-		// arenaArray.addNest(2, 0);
-		// arenaArray.addNest(3, 1);
-		// arenaArray.addNest(2, 2);
-		// arenaArray.addNest(3, 3);
 
 	}
 
@@ -195,59 +178,56 @@ public class Arena extends JPanel {
 
 			for (int row = 0; row <= arenaArray.totalRows(); row++) {
 				for (int col = 0; col <= arenaArray.totalCols(); col++) {
-					
-					//paint walls black
+
+					// paint walls black
 					if (theArena[row][col].isWall()) {
 						Rectangle2D.Double c;
 						c = new Rectangle2D.Double(col * CELLSIZE, row * CELLSIZE, CELLSIZE, CELLSIZE);
 						g2.setPaint(Color.BLACK);
 						g2.fill(c);
-					} 
-					//paint nests blue
+					}
+					// paint nests blue
 					else if (theArena[row][col].isNest()) {
 						Rectangle2D.Double c;
 						c = new Rectangle2D.Double(col * CELLSIZE, row * CELLSIZE, CELLSIZE, CELLSIZE);
 						g2.setPaint(Color.BLUE);
 						g2.fill(c);
 					}
-					
+
 					// note how much time has passed since a cell has been visited
 					if (theArena[row][col].visited()) {
 						theArena[row][col].addTime();
-						// if (theArena[row][col].visited()) {
-						// Rectangle2D.Double c;
-						// c = new Rectangle2D.Double(col * CELLSIZE, row * CELLSIZE, CELLSIZE,
-						// CELLSIZE);
-						//
-						// if (theArena[row][col].isNest()) {
-						// g2.setPaint(Color.GREEN);
-						// } else {
-						// g2.setPaint(Color.BLUE);
-						// }
-						// g2.fill(c);
-						// }
+						Rectangle2D.Double c;
+						c = new Rectangle2D.Double(col * CELLSIZE, row * CELLSIZE, CELLSIZE, CELLSIZE);
+
+						if (theArena[row][col].isNest()) {
+							g2.setPaint(Color.GREEN);
+						} else {
+							g2.setPaint(Color.PINK);
+						}
+						g2.fill(c);
+
 					}
 				}
 			}
 
-			// for (Ant a : ANTS) {
-			// Rectangle2D.Double c;
-			// c = new Rectangle2D.Double(a.getCol() * CELLSIZE, a.getRow() * CELLSIZE,
-			// CELLSIZE, CELLSIZE);
-			// g2.setPaint(Color.RED);
-			// g2.fill(c);
-			// }
+			for (Ant a : ants) {
+				Rectangle2D.Double c;
+				c = new Rectangle2D.Double(a.getCol() * CELLSIZE, a.getRow() * CELLSIZE, CELLSIZE, CELLSIZE);
+				g2.setPaint(Color.RED);
+				g2.fill(c);
+			}
 
 			// stop the ants after each simulation
 			if (numRounds >= TOTAL_ROUNDS) {
-				for (Ant a : ANTS) {
+				for (Ant a : ants) {
 					a.stopAnt();
 				}
 
 				// count the number of ants in each nest
 				for (Cell nest : theNests) {
 					int numAnts = 0;
-					for (Ant a : ANTS) {
+					for (Ant a : ants) {
 						int r = a.getRow();
 						int c = a.getCol();
 						if (theArena[r][c] == nest) {
@@ -274,12 +254,7 @@ public class Arena extends JPanel {
 			numRounds++;
 		}
 
-		// if(System.currentTimeMillis()-startTime > RUNTIME*60*1000) {
-		// for (Ant a : ants) {
-		// a.stopAnt();
-		// }
 		// makeExcel(activity, FILE_NAME);
-		// }
 
 	}
 
@@ -287,17 +262,22 @@ public class Arena extends JPanel {
 	 * reset arena for a new simulation
 	 */
 	public void reset() {
-		ANTS = new ArrayList<Ant>();
-		
+		ants = new ArrayList<Ant>();
+
 		// draw the ants again
+		// for (Ant a : ants) {
+		// a.setCol(BOXSIZE / 2);
+		// a.setRow(BOXSIZE / 2);
+		// a.restart();
+		// a.start();
+		// }
 		for (int i = 0; i < NUM_ANTS; i++) {
-			Ant a = new Ant(i, startTime, activity, BOXSIZE / 2, BOXSIZE / 2, theArena, this, SPEED, CHANCE_IN,
-					CHANCE_MOVE_ON);
-			ANTS.add(a);
+			Ant a = new Ant(i, activity, BOXSIZE / 2, BOXSIZE / 2, theArena, this, SPEED);
+			ants.add(a);
 			a.start();
 		}
-		
-		//reset each cell
+
+		// reset each cell
 		for (int row = 0; row <= arenaArray.totalRows(); row++) {
 			for (int col = 0; col <= arenaArray.totalCols(); col++) {
 				theArena[row][col].reset();
@@ -320,8 +300,14 @@ public class Arena extends JPanel {
 		theArena[row][col] = new Cell(type, row, col, name);
 	}
 
+	public int getNumRounds() {
+		return numRounds;
+	}
+
 	/**
-	 * Make excel data sheet with activities (nest enters/bridge crosses) during simulation
+	 * Make excel data sheet with activities (nest enters/bridge crosses) during
+	 * simulation
+	 * 
 	 * @param activityList
 	 * @param excelFilePath
 	 */
@@ -345,6 +331,7 @@ public class Arena extends JPanel {
 
 	/**
 	 * Make excel data sheet with nest occupation at end of simulation
+	 * 
 	 * @param excelFilePath
 	 */
 	public void makeExcelNests(String excelFilePath) {
@@ -367,6 +354,7 @@ public class Arena extends JPanel {
 
 	/**
 	 * Write data for nest occupation
+	 * 
 	 * @param n
 	 * @param row
 	 */
@@ -392,6 +380,7 @@ public class Arena extends JPanel {
 
 	/**
 	 * Write data for each activity
+	 * 
 	 * @param a
 	 * @param row
 	 */
@@ -417,6 +406,7 @@ public class Arena extends JPanel {
 
 	/**
 	 * Make header row for nest occupation data
+	 * 
 	 * @param sheet
 	 */
 	private void createNestHeaderRow(org.apache.poi.ss.usermodel.Sheet sheet) {
@@ -452,6 +442,7 @@ public class Arena extends JPanel {
 
 	/**
 	 * Make header row for activity data
+	 * 
 	 * @param sheet
 	 */
 	private void createHeaderRow(org.apache.poi.ss.usermodel.Sheet sheet) {

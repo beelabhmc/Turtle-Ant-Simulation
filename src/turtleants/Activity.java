@@ -12,7 +12,7 @@ public class Activity {
 	private int antID;
 
 	// time the activity occurred
-	private long time;
+	private int time;
 
 	// whether a nest was entered or if a bridge was crossed
 	private boolean nestEntered, bridgeCrossed;
@@ -20,7 +20,7 @@ public class Activity {
 	// where the activity occurred
 	private int row, col;
 
-	public Activity(long time, int antID, boolean nestEntered, boolean bridgeCrossed, int row, int col) {
+	public Activity(int time, int antID, boolean nestEntered, boolean bridgeCrossed, int row, int col) {
 		this.time = time;
 		this.antID = antID;
 		this.nestEntered = nestEntered;
